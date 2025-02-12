@@ -1,33 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>USB Camera Selector</title>
+    <title>USB Camera VR (Google Cardboard)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+        video {
+            width: 50%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
-    <select id="cameraSelect"></select>
-    <video id="video" autoplay playsinline></video>
+    <div class="container">
+        <video id="videoLeft" autoplay playsinline></video>
+        <video id="videoRight" autoplay playsinline></video>
+    </div>
+
     <script>
-        async function getCameras() {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === "videoinput");
-            const select = document.getElementById("cameraSelect");
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
-            videoDevices.forEach((device, index) => {
-                const option = document.createElement("option");
-                option.value = device.deviceId;
-                option.text = device.label || `Camera ${index + 1}`;
-                select.appendChild(option);
-            });
+                // Get video elements
+                const videoLeft = document.getElementById("videoLeft");
+                const videoRight = document.getElementById("videoRight");
 
-            select.onchange = () => startCamera(select.value);
+                // Set both videos to the same stream
+                videoLeft.srcObject = stream;
+                videoRight.srcObject = stream;
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+            }
         }
 
-        async function startCamera(deviceId) {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId } });
-            document.getElementById("video").srcObject = stream;
-        }
-
-        getCameras();
+        startCamera();
     </script>
 </body>
 </html>
