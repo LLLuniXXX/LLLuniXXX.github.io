@@ -1,33 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>USB Camera Selector</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>USB Camera VR (Google Cardboard)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+        video {
+            width: 50%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
-    <select id="cameraSelect"></select>
-    <video id="video" autoplay playsinline></video>
+    <div class="container">
+        <video id="videoLeft" autoplay playsinline></video>
+        <video id="videoRight" autoplay playsinline></video>
+    </div>
+
     <script>
-        async function getCameras() {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === "videoinput");
-            const select = document.getElementById("cameraSelect");
-
-            videoDevices.forEach((device, index) => {
-                const option = document.createElement("option");
-                option.value = device.deviceId;
-                option.text = device.label || `Camera ${index + 1}`;
-                select.appendChild(option);
-            });
-
-            select.onchange = () => startCamera(select.value);
+        // Hide the URL bar on load
+        function hideURLBar() {
+            setTimeout(() => {
+                window.scrollTo(0, 1);
+            }, 100);
         }
 
-        async function startCamera(deviceId) {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId } });
-            document.getElementById("video").srcObject = stream;
+        // Request back camera
+        async function startCamera() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const backCamera = devices.find(device => device.kind === "videoinput" && device.label.toLowerCase().includes("back"));
+                const constraints = { video: backCamera ? { deviceId: backCamera.deviceId } : true };
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                document.getElementById("videoLeft").srcObject = stream;
+                document.getElementById("videoRight").srcObject = stream;
+            } catch (error) {
+                console.error("Error accessing camera:", error);
+            }
         }
 
-        getCameras();
+        // Run on load
+        window.onload = () => {
+            hideURLBar();
+            startCamera();
+        };
+
+        // Re-hide URL bar when resizing
+        window.addEventListener("resize", hideURLBar);
     </script>
 </body>
 </html>
