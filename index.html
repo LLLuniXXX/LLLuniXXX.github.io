@@ -2,67 +2,146 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>USB Camera VR (Google Cardboard)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShieldGuard Antivirus</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #121829;
+            color: white;
             margin: 0;
-            overflow: hidden;
-            background: black;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 0;
         }
         .container {
-            display: flex;
-            width: 100vw;
-            height: 100vh;
+            margin-top: 50px;
         }
-        video {
-            width: 50%;
-            height: 100%;
-            object-fit: cover;
+        .scan-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 160px;
+            height: 160px;
+            margin: 20px auto;
+            cursor: pointer;
+        }
+        .scan-outline {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            position: absolute;
+        }
+        .scan-circle {
+            width: 145px;
+            height: 145px;
+            border-radius: 50%;
+            background-color: #00c853;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.5s;
+        }
+        .scan-indicator {
+            width: 145px;
+            height: 145px;
+            border-radius: 50%;
+            position: absolute;
+            border: 8px solid transparent;
+            border-top: 8px solid #00c853;
+            animation: none;
+            visibility: hidden;
+        }
+        .scan-status {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            max-width: 300px;
+            margin: 20px auto;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        @keyframes scan {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <video id="videoLeft" autoplay playsinline></video>
-        <video id="videoRight" autoplay playsinline></video>
+        <h1>ShieldGuard Antivirus</h1>
+        <p>Scan now for hidden threats!</p>
+        <div class="scan-wrapper" id="scanWrapper">
+            <div class="scan-outline"></div>
+            <div class="scan-circle" id="scanCircle">
+                <p id="scanText" style="color: black; font-weight: bold;">SCAN NOW</p>
+            </div>
+            <div class="scan-indicator" id="scanIndicator"></div>
+        </div>
+        <p class="scan-status" id="scanStatus"></p>
+        <div class="features">
+            <div class="feature" onclick="showProMessage()">🔒 Hack alerts<br><small>Not activated</small></div>
+            <div class="feature" onclick="showProMessage()">🗑️ Clean junk</div>
+            <div class="feature" onclick="showProMessage()">⚡ Check speed</div>
+            <div class="feature" onclick="showProMessage()">🔄 Auto Scan<br><small>Not activated</small></div>
+        </div>
     </div>
-
     <script>
-        // Hide the URL bar on load
-        function hideURLBar() {
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("scanWrapper").addEventListener("click", startScan);
+        });
+        
+        function startScan() {
+            let status = document.getElementById("scanStatus");
+            let scanIndicator = document.getElementById("scanIndicator");
+            let scanText = document.getElementById("scanText");
+            let scanCircle = document.getElementById("scanCircle");
+            
+            status.innerText = "Scanning...";
+            scanIndicator.style.animation = "scan 1s linear infinite";
+            scanIndicator.style.visibility = "visible";
+            scanCircle.style.backgroundColor = "transparent";
+            scanText.style.display = "none";
+            scanIndicator.style.border = "8px solid transparent";
+            scanIndicator.style.borderTop = "8px solid #00c853";
+            
+            let scanTime = Math.floor(Math.random() * (50000 - 30000 + 1)) + 30000;
+            
             setTimeout(() => {
-                window.scrollTo(0, 1);
-            }, 100);
+                scanIndicator.style.animation = "none";
+                scanIndicator.style.visibility = "hidden";
+                let threatDetected = Math.random() < 0.1;
+                if (threatDetected) {
+                    let threats = ["Trojan.FakeAlert", "Adware.PUP", "Tracking Cookie", "Ransomware.Sample"];
+                    let detected = threats[Math.floor(Math.random() * threats.length)];
+                    status.innerHTML = `Threat detected: <b>${detected}</b>! <br> Immediate action required.`;
+                    status.style.color = "red";
+                    scanCircle.style.backgroundColor = "red";
+                } else {
+                    status.innerText = "No threats detected. Your system is safe.";
+                    status.style.color = "#00c853";
+                    scanCircle.style.backgroundColor = "#00c853";
+                }
+                scanText.style.display = "block";
+                scanText.innerText = "SCAN NOW";
+            }, scanTime);
         }
-
-        // Request back camera
-        async function startCamera() {
-            try {
-                const devices = await navigator.mediaDevices.enumerateDevices();
-                const backCamera = devices.find(device => device.kind === "videoinput" && device.label.toLowerCase().includes("back"));
-                const constraints = { video: backCamera ? { deviceId: backCamera.deviceId } : true };
-
-                const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById("videoLeft").srcObject = stream;
-                document.getElementById("videoRight").srcObject = stream;
-            } catch (error) {
-                console.error("Error accessing camera:", error);
-            }
+        
+        function showProMessage() {
+            alert("This feature is only available in the Pro version. Upgrade now!");
         }
-
-        // Run on load
-        window.onload = () => {
-            hideURLBar();
-            startCamera();
-        };
-
-        // Re-hide URL bar when resizing
-        window.addEventListener("resize", hideURLBar);
     </script>
 </body>
 </html>
